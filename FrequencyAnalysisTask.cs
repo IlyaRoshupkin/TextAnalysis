@@ -8,9 +8,14 @@ namespace TextAnalysis
         public static Dictionary<string, string> GetMostFrequentNextWords(List<List<string>> text)
         {
             var result = new Dictionary<string, string>();
-
-            Dictionary<string, string> mostFreq2Gramms = Get2Gramms(text);
-
+            if (text.Count > 0 && text[0].Count > 1)
+            {
+                if(text[0].Count<3)
+                    result = Get2Gramms(text);
+                else if(text[0].Count)
+            }
+                
+                
             return result;
         }
 
@@ -46,8 +51,15 @@ namespace TextAnalysis
                     }            
                 }
             }
-            int amout = checkingSecWords.Keys.Count;
-            string[] firstWords = new string[amout];
+            GetMostFreq(checkingSecWords, bgramms);
+            
+            return bgramms;
+        }
+
+        private static void GetMostFreq(Dictionary<string, Dictionary<string, int>> checkingSecWords, Dictionary<string,string> bgramms)
+        {
+            int amount = checkingSecWords.Keys.Count;
+            string[] firstWords = new string[amount];
             checkingSecWords.Keys.CopyTo(firstWords, 0);
             for (int i = 0; i < firstWords.Length; i++)
             {
@@ -56,6 +68,7 @@ namespace TextAnalysis
                 int max = 0;
                 for(int j = 0; j < secWords.Length; j++)
                 {
+                    checkingSecWords[firstWords[i]].Keys.CopyTo(secWords, 0);
                     if(checkingSecWords[firstWords[i]][secWords[j]] > max)
                     {
                         max = checkingSecWords[firstWords[i]][secWords[j]];
@@ -63,7 +76,6 @@ namespace TextAnalysis
                     }
                 }
             }
-            return bgramms;
         }
     }
 }
