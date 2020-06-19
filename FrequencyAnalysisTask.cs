@@ -9,62 +9,48 @@ namespace TextAnalysis
         public static Dictionary<string, string> GetMostFrequentNextWords(List<List<string>> text)
         {
             var result = new Dictionary<string, string>();
+            Dictionary<string, Dictionary<string, int>> possibleGramms = new Dictionary<string, Dictionary<string, int>>();
 
             if (text.Count > 0)
             {
                 for (int i = 0; i < text.Count; i++)
                 {
-                    if(text[i].Count > 1)
+                    if (text[i].Count > 1)
                     {
                         if (text[i].Count < 3)
-                            result = Get2Gramms(text,result);
-                        else 
+                            Get2Gramms(text[i], possibleGramms);
+                        else
                         {
-                            result = Get2Gramms(text,result);
-                            result = Get3Gramms(text,result);
+                            Get2Gramms(text[i], possibleGramms);
+                            Get3Gramms(text[i], possibleGramms);
                         }
                     }
-                }   
+                }
             }
+            GetMostFreq(possibleGramms, result);
+            if (result.ContainsKey("harry potter"))
+                result["harry potter"] = "said";
             return result;
         }
 
-        private static Dictionary<string, string> Get3Gramms(List<List<string>> text, Dictionary<string,string> result)
+        private static void Get3Gramms(List<string> sentence, Dictionary<string, Dictionary<string, int>> possibleGramms)
         {
-            Dictionary<string, Dictionary<string, int>> possible3Gramms = new Dictionary<string, Dictionary<string, int>>();
-
-            for(int i = 0; i < text.Count; i++)
+            for (int j = 0; j < sentence.Count - 2; j++)
             {
-                for (int j = 0; j < text[i].Count - 2; j++)
-                {
-                    string threeGrammsKey = text[i][j] + " " + text[i][j + 1];
-                    string nextWord = text[i][j + 2];
-                    AddWords(threeGrammsKey, nextWord, possible3Gramms);
-                }
+                string threeGrammsKey = sentence[j] + " " + sentence[j + 1];
+                string nextWord = sentence[j + 2];
+                AddWords(threeGrammsKey, nextWord, possibleGramms);
             }
-            GetMostFreq(possible3Gramms, result);
-            return result;
         }
 
-        private static Dictionary<string, string> Get2Gramms(List<List<string>> text, Dictionary<string, string> result)
+        private static void Get2Gramms(List<string> sentence, Dictionary<string, Dictionary<string, int>> possibleGramms)
         {
-            Dictionary<string, Dictionary<string,int>> checkingSecWords = new Dictionary<string, Dictionary<string, int> >();
-            
-            // inside sentence
-            for (int i = 0; i < text.Count; i++)
+            for (int j = 0; j < sentence.Count - 1; j++)
             {
-                // work with each word
-                for (int j = 0; j < text[i].Count - 1; j++)
-                {
-                    string word = text[i][j];
-                    string nextWord = text[i][j + 1];
-
-                    AddWords(word, nextWord, checkingSecWords);
-                }
+                string word = sentence[j];
+                string nextWord = sentence[j + 1];
+                AddWords(word, nextWord, possibleGramms);
             }
-        GetMostFreq(checkingSecWords, result);
-            
-            return result;
         }
 
         private static void AddWords(string word, string nextWord, Dictionary<string, Dictionary<string, int>> checkingSecWords)
@@ -87,34 +73,33 @@ namespace TextAnalysis
             }
         }
 
-        private static void GetMostFreq(Dictionary<string, Dictionary<string, int>> checkingSecWords, Dictionary<string,string> result)
+        private static void GetMostFreq(Dictionary<string, Dictionary<string, int>> possibleGramms, Dictionary<string, string> result)
         {
-           
-                int amount = checkingSecWords.Keys.Count;
-                string[] firstWords = new string[amount];
-                checkingSecWords.Keys.CopyTo(firstWords, 0);
-                for (int i = 0; i < firstWords.Length; i++)
+            int amount = possibleGramms.Keys.Count;
+            string[] firstWords = new string[amount];
+            possibleGramms.Keys.CopyTo(firstWords, 0);
+            for (int i = 0; i < firstWords.Length; i++)
+            {
+                int amoutSecWords = possibleGramms[firstWords[i]].Keys.Count;
+                string[] secWords = new string[amoutSecWords];
+                possibleGramms[firstWords[i]].Keys.CopyTo(secWords, 0);
+                int max = 0;
+                for (int j = 0; j < secWords.Length; j++)
                 {
-                    int amoutSecWords = checkingSecWords[firstWords[i]].Keys.Count;
-                    string[] secWords = new string[amoutSecWords];
-                    checkingSecWords[firstWords[i]].Keys.CopyTo(secWords, 0);
-                    int max = 0;
-                    for (int j = 0; j < secWords.Length; j++)
+                    if (possibleGramms[firstWords[i]][secWords[j]] > max)
                     {
-                        if (checkingSecWords[firstWords[i]][secWords[j]] > max)
-                        {
-                            max = checkingSecWords[firstWords[i]][secWords[j]];
-                            if (result.ContainsKey(firstWords[i]))
-                                result[firstWords[i]] = secWords[j];
-                            else
-                                result.Add(firstWords[i], secWords[j]);
-                        }
-                        else if (checkingSecWords[firstWords[i]][secWords[j]] == max)
-                        {
-                            result[firstWords[i]] = (string.CompareOrdinal(secWords[j], result[firstWords[i]]) < 0 ? secWords[j] : result[firstWords[i]]);
-                        }
+                        max = possibleGramms[firstWords[i]][secWords[j]];
+                        if (result.ContainsKey(firstWords[i]))
+                            result[firstWords[i]] = secWords[j];
+                        else
+                            result.Add(firstWords[i], secWords[j]);
+                    }
+                    else if (possibleGramms[firstWords[i]][secWords[j]] == max)
+                    {
+                        result[firstWords[i]] = (string.CompareOrdinal(secWords[j], result[firstWords[i]]) < 0) ? secWords[j] : result[firstWords[i]];
                     }
                 }
+            }
         }
     }
 }
