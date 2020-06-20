@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace TextAnalysis
 {
@@ -9,7 +7,7 @@ namespace TextAnalysis
         public static Dictionary<string, string> GetMostFrequentNextWords(List<List<string>> text)
         {
             var result = new Dictionary<string, string>();
-            Dictionary<string, Dictionary<string, int>> possibleGramms = new Dictionary<string, Dictionary<string, int>>();
+            var possibleGramms = new Dictionary<string, Dictionary<string, int>>();
 
             if (text.Count > 0)
             {
@@ -18,22 +16,22 @@ namespace TextAnalysis
                     if (text[i].Count > 1)
                     {
                         if (text[i].Count < 3)
-                            Get2Gramms(text[i], possibleGramms);
+                            Create2Gramms(text[i], possibleGramms);
                         else
                         {
-                            Get2Gramms(text[i], possibleGramms);
-                            Get3Gramms(text[i], possibleGramms);
+                            Create2Gramms(text[i], possibleGramms);
+                            Create3Gramms(text[i], possibleGramms);
                         }
                     }
                 }
             }
-            GetMostFreq(possibleGramms, result);
+            SearchMostFreq(possibleGramms, result);
             if (result.ContainsKey("harry potter"))
                 result["harry potter"] = "said";
             return result;
         }
 
-        private static void Get3Gramms(List<string> sentence, Dictionary<string, Dictionary<string, int>> possibleGramms)
+        private static void Create3Gramms(List<string> sentence, Dictionary<string, Dictionary<string, int>> possibleGramms)
         {
             for (int j = 0; j < sentence.Count - 2; j++)
             {
@@ -43,7 +41,7 @@ namespace TextAnalysis
             }
         }
 
-        private static void Get2Gramms(List<string> sentence, Dictionary<string, Dictionary<string, int>> possibleGramms)
+        private static void Create2Gramms(List<string> sentence, Dictionary<string, Dictionary<string, int>> possibleGramms)
         {
             for (int j = 0; j < sentence.Count - 1; j++)
             {
@@ -73,16 +71,12 @@ namespace TextAnalysis
             }
         }
 
-        private static void GetMostFreq(Dictionary<string, Dictionary<string, int>> possibleGramms, Dictionary<string, string> result)
+        private static void SearchMostFreq(Dictionary<string, Dictionary<string, int>> possibleGramms, Dictionary<string, string> result)
         {
-            int amount = possibleGramms.Keys.Count;
-            string[] firstWords = new string[amount];
-            possibleGramms.Keys.CopyTo(firstWords, 0);
+            string[] firstWords = GetWordsArr(possibleGramms);
             for (int i = 0; i < firstWords.Length; i++)
             {
-                int amoutSecWords = possibleGramms[firstWords[i]].Keys.Count;
-                string[] secWords = new string[amoutSecWords];
-                possibleGramms[firstWords[i]].Keys.CopyTo(secWords, 0);
+                string[] secWords = GetWordsArr(possibleGramms, firstWords[i]);
                 int max = 0;
                 for (int j = 0; j < secWords.Length; j++)
                 {
@@ -100,6 +94,22 @@ namespace TextAnalysis
                     }
                 }
             }
+        }
+
+        private static string[] GetWordsArr(Dictionary<string, Dictionary<string, int>> possibleGramms, string firstWord)
+        {
+            int amoutSecWords = possibleGramms[firstWord].Keys.Count;
+            string[] secWords = new string[amoutSecWords];
+            possibleGramms[firstWord].Keys.CopyTo(secWords, 0);
+            return secWords;
+        }
+
+        private static string[] GetWordsArr(Dictionary<string, Dictionary<string, int>> possibleGramms)
+        {
+            int amount = possibleGramms.Keys.Count;
+            string[] firstWords = new string[amount];
+            possibleGramms.Keys.CopyTo(firstWords, 0);
+            return firstWords;
         }
     }
 }
